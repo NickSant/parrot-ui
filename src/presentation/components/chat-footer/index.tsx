@@ -1,12 +1,21 @@
 import { AiOutlineSend, AiOutlineSync } from "react-icons/ai"
 import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect, useState } from "react"
 
 type Props = {
   controlling: boolean
-  changeControll: (control: 'BOT' | 'USER') => void
+  changeControll: (control: 'assistant' | 'person') => void
+  handleMessage: (message: string) => void
 }
 
-export const ChatFooter = ({ controlling, changeControll }: Props) => {
+export const ChatFooter = ({ controlling, changeControll, handleMessage }: Props) => {
+  const [message, setMessage] = useState('')
+
+  const handleSendMessage = () => {
+    if(message === '') return
+    handleMessage(message)
+    setMessage('')
+  }
 
   return (
     <AnimatePresence>
@@ -31,17 +40,28 @@ export const ChatFooter = ({ controlling, changeControll }: Props) => {
       
       <footer className="w-[calc(100vw-400px)] fixed bottom-0 flex items-center bg-slate-900 p-4">
         <div className="w-full bg-slate-700 rounded-md h-[40px] col-span-10 text-slate-500 focus-within:text-white transition-all font-semibold">
-          <input className="w-full bg-transparent h-full outline-none px-4" placeholder="Mensagem" />
+          <input 
+            className="w-full bg-transparent h-full outline-none px-4" 
+            placeholder="Mensagem" 
+            onKeyDown={(key) => {
+              if(key.code === 'Enter') handleSendMessage()
+            }}
+            onChange={(e) => setMessage(e.target.value)}
+            value={message}
+          />
         </div>
 
         <div className="flex items-center justify-center gap-3 col-span-2 text-white">
-          <button className="flex items-center justify-center p-3 text-2xl rounded-full -ml-5 bg-blue-500 ">
+          <button 
+            className="flex items-center justify-center p-3 text-2xl rounded-full -ml-5 bg-blue-500"
+            onClick={() => handleSendMessage()}
+          >
             <AiOutlineSend />
           </button>
 
           <button 
             className={`group flex items-center justify-center p-3 gap-4 text-md rounded-full bg-blue-500`}
-            onClick={() => changeControll(!controlling ? 'USER' : 'BOT')}
+            onClick={() => changeControll(!controlling ? 'person' : 'assistant')}
           >
             <AiOutlineSync className="text-2xl group-:animate-spin" />  
             {controlling ? 'Bot' : 'Assumir'}

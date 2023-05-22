@@ -1,10 +1,11 @@
+import { Flags } from '@/domain/models/flags'
 import { Combobox } from '@headlessui/react'
 import { ReactNode, useState } from 'react'
 import { BiCheck, BiSearch } from 'react-icons/bi'
 
 type Props = {
-  options: Array<{label: string, value: string}>
-  onChange: (value: string) => void
+  options: Array<{label: string, value: Flags}>
+  onChange: (value: Flags) => void
   selected: string[]
 }
 
@@ -18,13 +19,13 @@ export const FilterSelect = ({ options, onChange, selected }: Props) => {
           return option.label.toLowerCase().includes(query.toLowerCase())
         })
   
-  const handleSelect = (value: string) => {
+  const handleSelect = (value: Flags) => {
     onChange(value)
     setQuery('')
   }
 
   return (
-    <Combobox onChange={(value: string) => handleSelect(value)}>
+    <Combobox onChange={(value: Flags) => handleSelect(value)}>
       <div className='relative flex flex-col w-full'>
         <div className="w-full flex items-center justify-center gap-4 bg-slate-900 rounded-t-lg h-10 text-slate-500 px-4 focus:outline-none focus-within:border-none transition-all border-box focus-within:text-slate-200">
           <BiSearch className=""/>

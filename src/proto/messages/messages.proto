@@ -1,0 +1,22 @@
+syntax = "proto3";
+option go_package = "internal/adapters";
+import "google/protobuf/timestamp.proto";
+package parrot.proto;
+
+service MessageService {
+  rpc ReceiveMessages(MessageRequest)
+      returns (stream MessageResponse);
+}
+
+message MessageRequest {
+    string Id = 1;
+}
+
+message MessageResponse {
+    repeated Message Messages = 1;
+}
+
+message Message {
+    string Role = 1;
+    string Content = 2;
+}

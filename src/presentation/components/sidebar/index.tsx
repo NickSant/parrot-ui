@@ -1,8 +1,19 @@
 import { AiOutlineSetting, AiOutlineSearch, AiOutlineAppstore  } from "react-icons/ai"
 import { ChatListItem } from "./components/chat-list-item"
 import { Link } from "react-router-dom"
+import { useChat } from "@/stores/chat-storage"
+import { useState } from "react"
 
 export const Sidebar = () => {
+  const [query, setQuery] = useState('')
+  const chats = useChat(state => state.localConversations)
+
+  const filteredChats =
+    query === ''
+      ? chats
+      : chats.filter(item => item.person.name.toLowerCase().includes(query.toLowerCase()))
+    
+
   return (
     <div 
       className='min-w-[400px] flex flex-col h-full bg-slate-800 border-r-[0.5px] border-collapse border-slate-400 border[0.5]'
@@ -24,7 +35,11 @@ export const Sidebar = () => {
             className="w-full flex items-center justify-center gap-4 bg-slate-900 rounded-t-lg h-10 text-slate-500 px-4 focus:outline-none focus-within:border-none transition-all border-box focus-within:text-slate-200"
           >
             <AiOutlineSearch className="text-xl" />
-            <input className="w-full bg-transparent focus:outline-none"/>
+            <input 
+              className="w-full bg-transparent focus:outline-none"
+              onChange={e => setQuery(e.target.value)}
+              value={query}
+            />
           </div>
 
           <Link to="/manage-chats">
@@ -38,14 +53,14 @@ export const Sidebar = () => {
           Conversas ativas
 
           <span className="rounded-full h-6 w-6 text-[12px] grid place-items-center bg-blue-300 text-white font-bold">
-            12
+            {chats.length}
           </span>
 
         </p>
 
         <ul className="flex flex-col mt-2 max-h-[calc(100vh-170px)] overflow-y-scroll scrollbar-thumb-slate-600 scrollbar-thin">
-          {Array.from({ length: 12 }).map((_, idx) => (
-            <ChatListItem key={idx} />
+          {filteredChats.map((chat, idx) => (
+            <ChatListItem key={idx} chat={chat}/>
           ))}
         </ul>
       </section>

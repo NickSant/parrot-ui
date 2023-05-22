@@ -1,35 +1,42 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { SlArrowLeft, SlClose, SlOptionsVertical } from 'react-icons/sl'
+import { AnimatePresence, Variants, motion } from 'framer-motion'
+import { SlArrowLeft } from 'react-icons/sl'
 import { Link } from 'react-router-dom'
-import { FilterSelect } from './components/filter-select'
-import { useState } from 'react'
-import { BiSearch, BiSort } from 'react-icons/bi'
-import { AiOutlineOrderedList } from 'react-icons/ai'
-import { Transition } from '@headlessui/react'
 
+import { SearchChats } from './sections/search-chats'
 
-import * as Avatar from '@radix-ui/react-avatar'
-import { ChatItem } from './components/chat-item'
+import { Tab } from '@headlessui/react'
+import { MyChats } from './sections/my-chats'
+import { BiConversation, BiFilter, BiSearch } from 'react-icons/bi'
+import { useChat } from '@/stores/chat-storage'
 
 export const ChatManagement = () => {
-  const [filters, setFilters] = useState<string[]>([])
-  const [searchChatsVisible, setSearchChatsVisible] = useState(false)
+  const localConversations = useChat(state => state.localConversations)
 
-  const filteringOptions = [
-    {label: 'Conversa promissora', value: 'promissing'},
-    {label: 'Insatisfeito', value: 'insatisfied'},
-    {label: 'Fase de compra', value: 'purchasing'},
-    {label: 'Iniciou recentemente', value: 'recently_started'},
-    {label: 'Com dúvidas', value: 'doubts'},
+  const tabs = [
+    {
+      id: 'my-chats',
+      label: 
+        <h2 className='flex gap-4 items-center'>
+          Minhas conversas 
+          <CountIndicator  count={localConversations.length} />
+        </h2>,
+      Icon: BiConversation,
+      section: <MyChats />
+    },
+    {
+      id: 'search-chats',
+      label: 'Procurar conversas',
+      Icon: BiSearch,
+      section: <SearchChats />
+    },
+    {
+      id: 'manage-filters',
+      label: 'Editar filtros',
+      Icon: BiFilter,
+      section: <h1 className='text-slate-400'>Editar filtros</h1>
+    },
   ]
-
-  const handleAddFilter = (value: string) => {
-    setFilters(old => old.concat(value))
-  }
-
-  const removeFilter = (filter: string) => {
-    setFilters(old => old.filter(item => item !== filter ))
-  }
+ 
 
   return (
     <AnimatePresence>
@@ -37,9 +44,9 @@ export const ChatManagement = () => {
         key="page"
         animate={{ y: [-1000, 0], opacity: [0, 1], transition: { bounce: 0 }}}
         exit={{ y: -1000, opacity: 0 }}
-        transition={{ }}
+        transition={{ duration: 1 }}
       >
-        <div className='w-full h-screen max-h-screen max-w-screen p-12 bg-slate-800'>
+        <div className='w-full h-screen max-h-screen max-w-screen px-12 py-6 bg-slate-800'>
           <header className='flex items-center gap-4 text-lg text-slate-200'>
             <Link to="/chats" className='flex items-center gap-4'>
               <SlArrowLeft />
@@ -48,77 +55,62 @@ export const ChatManagement = () => {
           </header>
 
           <div className='flex items-center justify-center mt-10'>
-            <section className='max-w-screen-lg w-full'>
-              <header className='w-full flex flex-col gap-3'>
-                <FilterSelect 
-                  options={filteringOptions}
-                  selected={filters}
-                  onChange={handleAddFilter}
-                />
-                <div className='flex flex-wrap gap-2'>
-                  {filters.map(filter => (
-                    <div className='group text-slate-400 px-4 py-2 bg-slate-900 w-fit rounded-lg flex gap-2 items-center hover:bg-slate-700 hover:text-slate-100 font-medium'>
-                      {filteringOptions.find(item => item.value === filter)?.label}
-                      <button onClick={() => removeFilter(filter)}>
-                        <SlClose className="transition-all"/>
-                      </button>
-                    </div>
-                  ))}
+            <main className='max-w-screen-xl w-full flex flex-col md:grid md:grid-cols-6 lg:grid-cols-5 gap-8'>
+              <Tab.Group vertical>
+                <div className='md:col-span-2 lg:col-span-1 border-r border-r-slate-400 border-opacity-20'>
+                  <Tab.List className='flex flex-col'>
+                    {
+                      tabs.map(tab => (
+                        <Tab key={tab.id} className={({ selected }) => `flex items-center gap-4 hover:text-slate-300 py-4 text-left w-full ${selected ? 'border-r-4 border-r-blue-400 text-slate-200 font-medium' : 'text-slate-400'} transition-all`}>
+                          <tab.Icon className="text-xl"/>
+                          {tab.label}
+                        </Tab>
+                      ))
+                    }
+                  </Tab.List>
                 </div>
-              </header>
-
-              <div className='mt-6'>
-                <header className='w-full flex justify-between items-center'>
-                  <h3 className='text-lg text-slate-200 font-medium'>Conversas</h3>
-                  <div className='flex gap-3 text-md'>
-                    <div className='group flex items-center gap-2'>
-                      <Transition
-                        show={searchChatsVisible}
-                        enter="transition-opacity"
-                        enterFrom='opacity-0'
-                        enterTo='opacity-1'
-                        leave="transition-opacity"
-                        leaveFrom='opacity-1'
-                        leaveTo='opacity-0'
-                      >
-                        <input className='bg-blue-400 outline-none px-4 py-1 rounded-full w-[200px] -mr-10'/>
-                      </Transition>
-                      <button 
-                        className='rounded-full p-2 text-blue-100 hover:bg-blue-400 bg-opacity-10 transition-all z-10'
-                        onClick={() => setSearchChatsVisible(old => !old)}
-                      >
-                        <BiSearch />
-                      </button>
-                    </div>
-                    <button className='rounded-full p-2 text-blue-100 hover:bg-blue-400 bg-opacity-10 transition-all'>
-                      <BiSort />
-                    </button>
-                    <button className='rounded-full p-2 text-blue-100 hover:bg-blue-400 bg-opacity-10 transition-all'>
-                      <SlOptionsVertical />
-                    </button>
-                  </div>
-                </header>
-
-                <div className='h-[calc(100vh-265px)] grid grid-cols-2 gap-3 py-6 pr-2 overflow-y-auto scrollbar-thumb-slate-600 scrollbar-thin mt-4'>
-                  
-                  <ChatItem />
-                  <ChatItem />
-                  <ChatItem />
-                  <ChatItem />
-                  <ChatItem />  
-                  <ChatItem />  
-                  <ChatItem />  
-                  <ChatItem />  
-                  <ChatItem />  
-                  <ChatItem />  
-                  <ChatItem />  
-                   
-                </div>
-              </div>
-            </section>
+                <Tab.Panels className='col-span-4'>
+                  {
+                    tabs.map(tab => (
+                      <Tab.Panel key={tab.id}>
+                        {tab.section}
+                      </Tab.Panel>
+                    ))
+                  }
+                </Tab.Panels>
+              </Tab.Group>
+            </main>
           </div>
         </div>
       </motion.div>
     </AnimatePresence>
+  )
+}
+
+
+const CountIndicator = ({ count }: { count: number }) => {
+  const variants: Variants = {
+    hide: {
+      scale: 1
+    },
+    show: {
+      scale: [1, 1.3, 1.3, 1],
+      transition: {
+        duration: 0.8,
+        ease: 'easeOut'
+      }
+    }
+  }
+
+  return (
+    <motion.div
+      initial="hide"
+      animate="show"
+      variants={variants}
+      key={count}
+      className='rounded-full h-6 w-6 text-[12px] grid place-items-center bg-blue-500 text-white font-bold'
+    >
+      {count}
+    </motion.div>
   )
 }

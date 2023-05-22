@@ -1,54 +1,84 @@
 import { ChatFooter } from "@/presentation/components/chat-footer"
-import { Fragment, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import { AiOutlineGlobal, AiOutlineRobot, AiOutlineUser } from "react-icons/ai"
 import { BiHappy, BiShoppingBag } from "react-icons/bi"
 
 import { Popover, Transition } from '@headlessui/react'
 
 import { SlArrowDown } from "react-icons/sl"
+import { useChat } from "@/stores/chat-storage"
+import useMemoizedState from "@/presentation/hooks/useMemoizedState"
+import { getLiveMessages } from "@/data/usecases/getLiveMessages"
 
 export const Chats = () => {
-  const [controll, setControll] = useState('BOT')
+  const conversationWrapperRef = useRef<HTMLDivElement>(null)
+
+  const activeConversation = useChat(state => state.activeConversation)
+  const [controll, setControll] = useState('assistant')
+  const [messages, setMessages] = useMemoizedState<{ message: string, sender: string}[]>([])
+
+  const handleGetMessages = () => getLiveMessages(
+      { id: activeConversation?.id as string }, 
+      (message) => {
+      const messages = message.messages.map(item => ({
+        message: item.content,
+        sender: item.role
+      }))
+
+      setMessages(messages)
+    })
+  
+  const handleMessages = async (message: string) => {
+    setMessages(messages.concat({sender: 'assistant', message}))
+  }
+
+  const scrollBottom = () => {
+    const lastChild = conversationWrapperRef.current?.lastElementChild
+    lastChild?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }
+
+  useEffect(() => {
+    scrollBottom()
+  }, [messages])
+
+  useEffect(() => {
+    setMessages([])
+    const { abort, removeListener } = handleGetMessages()
+
+    return () => {
+      removeListener()
+      abort()
+    }
+  }, [activeConversation])
 
   return (
     <div className="h-[calc(100vh-72px)] bg-blue-200">
-      <div className="h-[calc(100vh-72px-80px)] w-full py-6 pb-8 px-4 relative scrollbar-thin overflow-y-scroll">
+      <div 
+        className="h-[calc(100vh-72px-80px)] w-full py-6 pb-8 px-4 relative scrollbar-thin  scrollbar-thumb-slate-400 overflow-y-scroll"
+        ref={conversationWrapperRef}
+      >
         <ConversationContext />
-
-        <SentMessage sender="BOT"/>
-        <ReceivedMessage />
-        <SentMessage sender="BOT"/>
-        <ReceivedMessage />
-        <SentMessage sender="PERSON"/>
-        <SentMessage sender="BOT"/>
+        {messages.map(msg => (
+          msg.sender === 'user'
+            ? <ReceivedMessage message={msg.message} /> 
+            : <SentMessage sender={msg.sender} message={msg.message} />
+        ))}
       </div>
-
-      <ChatFooter controlling={controll === 'USER'} changeControll={setControll}/>
+      
+      <ChatFooter
+        handleMessage={handleMessages} 
+        controlling={controll === 'person'} 
+        changeControll={setControll}
+      />
     </div>
   )
 }
 
 
 type SentMessageProps = {
-  sender: 'BOT' | 'PERSON'
+  sender?: string
+  message: string
 }
-
-// const ConversationContext = () => {
-
-//   return (
-//     <div className="group  text-slate-200 w-fit text-sm transition-all bg-slate-900 rounded-lg py-2 px-4 gap-6 flex flex-col">
-//       <span className="flex items-center gap-4">
-//         Contexto da conversa <SlArrowDown className="group-hover:rotate-180 transition-all"/>
-//       </span>
-
-//       <ul className="hidden group-hover:flex flex-col gap-2 list-disc w-[300px] pl-4 pb-2">
-//         <li>Conversa amigável</li>
-//         <li>Tem interesse em viagem internacional</li>
-//         <li>Já fez cotações de seguro viagem em outros sites</li>
-//       </ul>
-//     </div>
-//   )
-// }
 
 const ConversationContext = () => (
   <Popover className="fixed z-20 top-20 left-[410px]">
@@ -90,24 +120,24 @@ const ConversationContext = () => (
   </Popover>
 )
 
-const SentMessage = ({ sender }: SentMessageProps) => (
+const SentMessage = ({ sender, message }: SentMessageProps) => (
   <div className="w-full flex justify-end">
     <div className="text-sm align-right text-right bg-blue-950 rounded-lg px-3 py-4 text-slate-200 max-w-[600px] my-2">
-      {sender === "BOT" 
+      {sender === "assistant" 
         ? <span className="text-slate-400 mb-4 flex gap-3 justify-end items-center">Enviado pelo bot <AiOutlineRobot /></span> 
         : <span className="text-slate-400 mb-4 flex gap-3 justify-end items-center">Enviado por você <AiOutlineUser /></span>
       }
-      <p className="mb-4">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Neque numquam ea, perferendis fugiat dicta molestiae earum quidem, molestias labore nesciunt modi debitis dolorem fugit fuga eligendi voluptatem eaque in maxime?</p>
+      <p className="mb-4">{message}</p>
 
       <span className="text-[12px] text-slate-400">11:45</span>
     </div>
   </div>
 )
 
-const ReceivedMessage = () => (
+const ReceivedMessage = ({ message }: SentMessageProps) => (
   <div className="w-full flex justify-start">
     <div className="relative text-sm float-left align-left text-left bg-slate-500 rounded-lg px-3 py-4 text-slate-200 max-w-[600px] my-2">
-      <p className="mb-4">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Neque numquam ea, perferendis fugiat dicta molestiae earum quidem, molestias labore nesciunt modi debitis dolorem fugit fuga eligendi voluptatem eaque in maxime?</p>
+      <p className="mb-4">{message}</p>
 
       <span className="text-[12px] text-slate-400">11:45</span>
     </div>
