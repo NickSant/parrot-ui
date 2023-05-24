@@ -21,8 +21,8 @@ export const MyChats = () => {
     query === ''
       ? conversations
       : conversations.filter(item => 
-          item.person.name.toLowerCase().includes(query.toLowerCase())
-          || item.person.number.toLowerCase().includes(query.toLowerCase())
+          item.user?.name.toLowerCase().includes(query.toLowerCase())
+          || item.user?.phone.toLowerCase().includes(query.toLowerCase())
         )
 
   const handleDelete = (id: string) => {
@@ -40,7 +40,7 @@ export const MyChats = () => {
       <header className='mb-5 flex items-center justify-between gap-6'>
         <div 
           id="searchInput"
-          className="w-full flex items-center justify-center gap-4 bg-slate-900 rounded-t-lg h-10 text-slate-500 px-4 focus:outline-none focus-within:border-none transition-all border-box focus-within:text-slate-200"
+          className="w-full flex items-center justify-center gap-4 bg-slate-200 dark:bg-slate-900 rounded-t-lg h-10 text-slate-500 px-4 focus:outline-none focus-within:border-none transition-all border-box focus-within:text-slate-900 focus-within:dark:text-slate-200"
         >
           <AiOutlineSearch className="text-xl" />
           <input 
@@ -75,7 +75,7 @@ export const MyChats = () => {
         </div>
 
       </header>
-      <div className='w-full flex flex-col gap-3 h-full max-h-[calc(100vh-155px)] scrollbar-thin scrollbar-thumb-slate-500 overflow-y-scroll overflow-x-hidden pr-2'>
+      <div className='w-full flex flex-col gap-3 h-full max-h-[calc(100vh-155px)] scrollbar-thin scrollbar-thumb-slate-500 overflow-y-scroll overflow-x-hidden px-2 pt-1 pb-2'>
         <AnimatePresence>
           {filteredConversations.map((conversation, idx) => (
             <motion.div 

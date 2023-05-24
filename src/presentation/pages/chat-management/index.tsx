@@ -46,8 +46,8 @@ export const ChatManagement = () => {
         exit={{ y: -1000, opacity: 0 }}
         transition={{ duration: 1 }}
       >
-        <div className='w-full h-screen max-h-screen max-w-screen px-12 py-6 bg-slate-800'>
-          <header className='flex items-center gap-4 text-lg text-slate-200'>
+        <div className='w-full h-screen max-h-screen max-w-screen px-12 py-6 bg-white dark:bg-slate-800'>
+          <header className='flex items-center gap-4 text-lg text-slate-800 dark:text-slate-200'>
             <Link to="/chats" className='flex items-center gap-4'>
               <SlArrowLeft />
               Voltar para chats
@@ -61,7 +61,7 @@ export const ChatManagement = () => {
                   <Tab.List className='flex flex-col'>
                     {
                       tabs.map(tab => (
-                        <Tab key={tab.id} className={({ selected }) => `flex items-center gap-4 hover:text-slate-300 py-4 text-left w-full ${selected ? 'border-r-4 border-r-blue-400 text-slate-200 font-medium' : 'text-slate-400'} transition-all`}>
+                        <Tab key={tab.id} className={({ selected }) => `flex items-center gap-4 hover:text-slate-300 py-4 text-left w-full ${selected ? 'border-r-4 border-r-blue-400 text-slate-800 dark:text-slate-200 font-medium' : 'text-slate-500 dark:text-slate-400'} transition-all`}>
                           <tab.Icon className="text-xl"/>
                           {tab.label}
                         </Tab>

@@ -18,7 +18,7 @@ export const MainLayout = () => {
             <Outlet />
           </div>
         : (
-          <div className='w-full h-full flex flex-col items-center justify-center bg-slate-800 text-slate-200'>
+          <div className='w-full h-full flex flex-col items-center justify-center text-blue-400 bg-white dark:bg-slate-800 dark:text-slate-200'>
             <HiChatBubbleLeftRight className="text-8xl mb-5" />
             <h2 className='text-xl'>Selecione uma conversa</h2>
             <span></span>

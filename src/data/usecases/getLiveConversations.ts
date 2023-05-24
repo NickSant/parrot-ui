@@ -1,5 +1,6 @@
-import { ConversationRequest, ConversationResponse } from "@/proto/conversation/conversation";
-import { ConversationServiceClient } from "@/proto/conversation/conversation.client";
+
+import { ConversationRequest, ConversationResponse } from "@/proto/parrot";
+import { ConversationServiceClient } from "@/proto/parrot.client";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport"
 
 const apiUrl = import.meta.env.VITE_API_URL as string
@@ -13,9 +14,12 @@ let abortController: AbortController;
 export const getLiveConversations = (req: ConversationRequest, callback: (res: ConversationResponse) => void) => {
   abortController = new AbortController()
   const client = new ConversationServiceClient(transport)
-  const res = client.receiveConversations(req, { abort: abortController.signal }).responses
+  const res = client.getAllConversations(req, { abort: abortController.signal }).responses
 
-  const removeListener = res.onMessage((res) => callback(res))
+  const removeListener = res.onMessage((res) => {
+    console.log(res)
+    callback(res)
+  })
 
   return {
     removeListener,

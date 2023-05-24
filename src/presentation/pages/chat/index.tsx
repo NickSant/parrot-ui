@@ -7,29 +7,30 @@ import { Popover, Transition } from '@headlessui/react'
 
 import { SlArrowDown } from "react-icons/sl"
 import { useChat } from "@/stores/chat-storage"
-import useMemoizedState from "@/presentation/hooks/useMemoizedState"
 import { getLiveMessages } from "@/data/usecases/getLiveMessages"
+
+import { Message } from "@/proto/parrot"
 
 export const Chats = () => {
   const conversationWrapperRef = useRef<HTMLDivElement>(null)
 
   const activeConversation = useChat(state => state.activeConversation)
-  const [controll, setControll] = useState('assistant')
-  const [messages, setMessages] = useMemoizedState<{ message: string, sender: string}[]>([])
+  const [controll, setControll] = useState('[APPLICATION]')
+  const [messages, setMessages] = useState<Message[]>([])
 
   const handleGetMessages = () => getLiveMessages(
-      { id: activeConversation?.id as string }, 
+      {
+        conversationId: activeConversation?.id as string,
+        iniDate: '',
+        endDate: '',
+      }, 
       (message) => {
-      const messages = message.messages.map(item => ({
-        message: item.content,
-        sender: item.role
-      }))
-
-      setMessages(messages)
+      const newMessages = message.messages
+      setMessages(old => old.length > 0 ? [...old, ...newMessages] : newMessages)
     })
   
   const handleMessages = async (message: string) => {
-    setMessages(messages.concat({sender: 'assistant', message}))
+    return
   }
 
   const scrollBottom = () => {
@@ -59,15 +60,15 @@ export const Chats = () => {
       >
         <ConversationContext />
         {messages.map(msg => (
-          msg.sender === 'user'
-            ? <ReceivedMessage message={msg.message} /> 
-            : <SentMessage sender={msg.sender} message={msg.message} />
+          msg.role === '[USER]'
+            ? <ReceivedMessage message={msg} /> 
+            : <SentMessage message={msg} />
         ))}
       </div>
       
       <ChatFooter
         handleMessage={handleMessages} 
-        controlling={controll === 'person'} 
+        controlling={controll === '[PERSON]'} 
         changeControll={setControll}
       />
     </div>
@@ -76,8 +77,7 @@ export const Chats = () => {
 
 
 type SentMessageProps = {
-  sender?: string
-  message: string
+  message: Message
 }
 
 const ConversationContext = () => (
@@ -120,14 +120,14 @@ const ConversationContext = () => (
   </Popover>
 )
 
-const SentMessage = ({ sender, message }: SentMessageProps) => (
+const SentMessage = ({ message }: SentMessageProps) => (
   <div className="w-full flex justify-end">
     <div className="text-sm align-right text-right bg-blue-950 rounded-lg px-3 py-4 text-slate-200 max-w-[600px] my-2">
-      {sender === "assistant" 
+      {message.role === "[APPLICATION]" 
         ? <span className="text-slate-400 mb-4 flex gap-3 justify-end items-center">Enviado pelo bot <AiOutlineRobot /></span> 
         : <span className="text-slate-400 mb-4 flex gap-3 justify-end items-center">Enviado por você <AiOutlineUser /></span>
       }
-      <p className="mb-4">{message}</p>
+      <p className="mb-4">{message.content}</p>
 
       <span className="text-[12px] text-slate-400">11:45</span>
     </div>
@@ -137,7 +137,7 @@ const SentMessage = ({ sender, message }: SentMessageProps) => (
 const ReceivedMessage = ({ message }: SentMessageProps) => (
   <div className="w-full flex justify-start">
     <div className="relative text-sm float-left align-left text-left bg-slate-500 rounded-lg px-3 py-4 text-slate-200 max-w-[600px] my-2">
-      <p className="mb-4">{message}</p>
+      <p className="mb-4">{message.content}</p>
 
       <span className="text-[12px] text-slate-400">11:45</span>
     </div>

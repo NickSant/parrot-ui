@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { FilterSelect } from '../../components/filter-select'
-import { SlClose, SlOptionsVertical } from 'react-icons/sl'
+import { SlClose, SlOptionsVertical, SlSettings } from 'react-icons/sl'
 import { useNavigate } from 'react-router-dom'
 import { Transition } from '@headlessui/react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -10,14 +10,14 @@ import { useChat } from '@/stores/chat-storage'
 import { Chat } from '@/domain/models/chat'
 import { Flags } from '@/domain/models/flags'
 
-import { Timestamp } from '@/proto/google/protobuf/timestamp'
-import { ConversationResponse } from '@/proto/conversation/conversation'
-
-import { ChatItem } from '../../components/chat-item'
-import { faker } from '@faker-js/faker'
+import { ConversationResponse } from '@/proto/parrot'
 import { getLiveConversations } from '@/data/usecases/getLiveConversations'
 
+import { ChatItem } from '../../components/chat-item'
+import { Menu } from '@/presentation/components/general/menu'
+
 export const SearchChats = () => {
+  const [firstRequest, setFirstRequest] = useState(true)
   const localConversations = useChat(state => state.localConversations)
   const pushConversation = useChat(state => state.pushConversation)
   const setConversation = useChat(state => state.setConversation)
@@ -31,22 +31,21 @@ export const SearchChats = () => {
   const [searchChatsVisible, setSearchChatsVisible] = useState(false)
 
   const handleGetLiveConversations = () => getLiveConversations(
-    { timestamp: Timestamp.create() }, 
+    { 
+      tenantId: import.meta.env.VITE_TENANT_ID as string,
+      skip: 0n,
+      take: 30n,
+      filters: []
+     }, 
     (message: ConversationResponse) => {
-    const conversations: Chat[] = message.conversations.map(item => ({
-      id: item.id,
-      person: {
-        id: faker.string.uuid(),
-        name: 'Nicolas Santos',
-        number: item.user.split(':')[1],
-        avatarUrl: 'https://avatars.githubusercontent.com/u/60119543?v=4'
-      },
-      conversationId: faker.string.uuid(),
-      status: 'ACTIVE',
-      tags: []
-    }))
-
-    setAllChats(conversations)
+    const conversations: Chat[] = message.conversations
+    
+    if(firstRequest){
+      setAllChats(conversations)
+      setFirstRequest(false)
+    } else {
+      setAllChats(old => [...conversations,...old])
+    }
   })
   
 
@@ -55,17 +54,16 @@ export const SearchChats = () => {
     return allChats.filter(item => !localIds.includes(item.id))
   }, [localConversations, allChats])
 
-  const flagFilteredChats = 
-    filters.length === 0
-      ? availableChats
-      : availableChats.filter(item => filters.every((flag) => item.tags.includes(flag)))
+
+  // provisory without flags
+  const flagFilteredChats = availableChats
 
   const inputFilteredChats =
     searchChats === ''
       ? flagFilteredChats
       : flagFilteredChats.filter(item => 
-          item.person.name.toLowerCase().includes(searchChats.toLowerCase())
-          || item.person.number.toLowerCase().includes(searchChats.toLowerCase())
+          item.user?.name.toLowerCase().includes(searchChats.toLowerCase())
+          || item.user?.phone.toLowerCase().includes(searchChats.toLowerCase())
         )
 
   const filteringOptions = [
@@ -115,7 +113,7 @@ export const SearchChats = () => {
         />
         <div className='flex flex-wrap gap-2'>
           {filters.map(filter => (
-            <div className='group text-slate-400 px-4 py-2 bg-slate-900 w-fit rounded-lg flex gap-2 items-center hover:bg-slate-700 hover:text-slate-100 font-medium'>
+            <div className='group text-slate-600 dark:text-slate-400 px-4 py-2 bg-slate-200 dark:bg-slate-900 w-fit rounded-lg flex gap-2 items-center hover:bg-slate-300 hover:dark:bg-slate-700 hover:text-slate-700 hover:dark:text-slate-100 font-medium'>
               {filteringOptions.find(item => item.value === filter)?.label}
               <button onClick={() => removeFilter(filter)}>
                 <SlClose className="transition-all"/>
@@ -127,7 +125,7 @@ export const SearchChats = () => {
 
       <div className='mt-6'>
         <header className='w-full flex justify-between items-center'>
-          <h3 className='text-lg text-slate-200 font-medium flex gap-4 items-center'>
+          <h3 className='text-lg text-slate-800 dark:text-slate-200 font-medium flex gap-4 items-center'>
             Conversas
 
             <span className="rounded-full h-8 w-8 text-[14px] grid place-items-center bg-blue-500 text-white font-bold">
@@ -152,22 +150,27 @@ export const SearchChats = () => {
                 />
               </Transition>
               <button 
-                className='rounded-full p-2 text-blue-100 hover:bg-blue-400 bg-opacity-10 transition-all z-10'
+                className='rounded-full p-2 text-slate-600 dark:text-blue-100 hover:bg-blue-400 bg-opacity-10 transition-all z-10'
                 onClick={() => setSearchChatsVisible(old => !old)}
               >
                 <BiSearch />
               </button>
             </div>
-            <button className='rounded-full p-2 text-blue-100 hover:bg-blue-400 bg-opacity-10 transition-all'>
+            <button className='rounded-full p-2 text-slate-600 dark:text-blue-100 hover:bg-blue-400 bg-opacity-10 transition-all'>
               <BiSort />
             </button>
-            <button className='rounded-full p-2 text-blue-100 hover:bg-blue-400 bg-opacity-10 transition-all'>
-              <SlOptionsVertical />
-            </button>
+
+            <Menu items={[
+              {label: 'opção', Icon: <SlSettings />}
+            ]}>
+              <div className='rounded-full p-2 text-slate-600 dark:text-blue-100 hover:bg-blue-400 bg-opacity-10 transition-all'>
+                <SlOptionsVertical />
+              </div>
+            </Menu>
           </div>
         </header>
 
-        <div className='h-[calc(100vh-265px)] grid grid-cols-2 gap-3 py-6 pr-2 overflow-y-auto scrollbar-thumb-slate-600 scrollbar-thin mt-4'>
+        <div className='h-[calc(100vh-265px)] grid grid-cols-2 gap-3 py-6 px-2 overflow-y-auto scrollbar-thumb-slate-600 scrollbar-thin mt-4'>
           <AnimatePresence>
             {inputFilteredChats.map((chat, idx) => (
               <motion.div

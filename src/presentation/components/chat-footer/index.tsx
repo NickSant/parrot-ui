@@ -1,6 +1,6 @@
-import { AiOutlineSend, AiOutlineSync } from "react-icons/ai"
+import { useState } from "react"
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useState } from "react"
+import { AiOutlineSend, AiOutlineSync } from "react-icons/ai"
 
 type Props = {
   controlling: boolean
@@ -30,7 +30,6 @@ export const ChatFooter = ({ controlling, changeControll, handleMessage }: Props
             exit={{
               x: 1000,
               opacity: 0
-              
             }}
             className="w-full px-4 py-2 bg-blue-500 text-white z-20 text-sm fixed bottom-20"
           >
@@ -38,8 +37,8 @@ export const ChatFooter = ({ controlling, changeControll, handleMessage }: Props
           </motion.div>
       }
       
-      <footer className="w-[calc(100vw-400px)] fixed bottom-0 flex items-center bg-slate-900 p-4">
-        <div className="w-full bg-slate-700 rounded-md h-[40px] col-span-10 text-slate-500 focus-within:text-white transition-all font-semibold">
+      <footer className="w-[calc(100vw-400px)] fixed bottom-0 flex items-center bg-slate-100 dark:bg-slate-900 p-3">
+        <div className="w-full bg-white dark:bg-slate-700 rounded-md h-[40px] col-span-10 text-slate-500 focus-within:dark:text-white focus-within:text-slate-700 transition-all font-semibold">
           <input 
             className="w-full bg-transparent h-full outline-none px-4" 
             placeholder="Mensagem" 
